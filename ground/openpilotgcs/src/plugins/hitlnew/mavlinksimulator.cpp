@@ -115,6 +115,43 @@ void MavlinkSimulator::processUpdate(const QByteArray& dataBuf)
                 attActualData.q4 = quat[3];
                 attActual->setData(attActualData);
                 break;
+            case MAVLINK_MSG_ID_GPS_RAW_INT:
+                mavlink_gps_raw_int_t gps;
+                mavlink_msg_gps_raw_int_decode(&message, &gps);
+                // Update gps objects
+                GPSPosition::DataFields gpsData;
+                memset(&gpsData, 0, sizeof(GPSPosition::DataFields));
+                gpsData.Altitude = gps.alt / 1000.0f; // Convert mm to m
+                gpsData.Latitude = gps.lat; // Note this is in degrees * 10^-7
+                gpsData.Longitude = gps.lon; // Note this is in degrees * 10^-7
+                // 65535 indicates 'unknown'
+                if (gps.cog != 65535) {
+                    // XXX: This might be wrong, since heading != course over ground
+                    gpsData.Heading = gps.cog / 100.0f;
+                }
+                if (gps.vel != 65535) {
+                    gpsData.Groundspeed = gps.vel / 100.0f;
+                }
+                if (gps.eph != 65535) {
+                    gpsData.HDOP = gps.eph / 100.0f;
+                }
+                if (gps.epv != 65535) {
+                    gpsData.VDOP = gps.epv / 100.0f;
+                }
+                // 255 indicates 'unknown'
+                if (gps.satellites_visible != 255) {
+                    gpsData.Satellites = gps.satellites_visible;
+                }
+                if (gps.fix_type == 3) {
+                    gpsData.Status = GPSPosition::STATUS_FIX3D;
+                } else if (gps.fix_type == 2) {
+                    gpsData.Status = GPSPosition::STATUS_FIX2D;
+                } else {
+                    gpsData.Status = GPSPosition::STATUS_NOFIX;
+                }
+
+                gpsPos->setData(gpsData);
+                break;
         }
     }
 }
