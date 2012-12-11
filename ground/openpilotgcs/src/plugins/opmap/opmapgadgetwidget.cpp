@@ -576,8 +576,8 @@ void OPMapGadgetWidget::updatePosition()
     GPSPosition::DataFields gpsPositionData = gpsPositionObj->getData();
 
     gps_heading = gpsPositionData.Heading;
-    gps_latitude = gpsPositionData.Latitude;
-    gps_longitude = gpsPositionData.Longitude;
+    gps_latitude = gpsPositionData.Latitude * 1.0e-7;
+    gps_longitude = gpsPositionData.Longitude * 1.0e-7;
     gps_altitude = gpsPositionData.Altitude;
 
 	gps_pos = internals::PointLatLng(gps_latitude, gps_longitude);
@@ -627,7 +627,7 @@ void OPMapGadgetWidget::updatePosition()
 	// *************
 	// set the UAV icon position on the map
 
-	m_map->UAV->SetUAVPos(uav_pos, uav_altitude);        // set the maps UAV position
+	m_map->UAV->SetUAVPos(gps_pos, gps_altitude);        // set the maps UAV position
 //	qDebug()<<"UAVPOSITION"<<uav_pos.ToString();
 	m_map->UAV->SetUAVHeading(uav_yaw);                  // set the maps UAV heading
 
